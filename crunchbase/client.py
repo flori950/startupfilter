@@ -52,7 +52,6 @@ class CrunchbaseClient():
 
             # Make a test request to the API with the payload
             response = requests.post(self.QUERY_URL, json=payload, headers=headers)
-
             # Check if the response is successful
             if response.status_code == 200:
                 logger.success("Crunchbase API is reachable")
@@ -84,7 +83,6 @@ class CrunchbaseClient():
 
             # Send a POST request to get the count of companies
             response = requests.post(self.QUERY_URL, params={"user_key": self.API_KEY}, json=query, headers=headers)
-
             # Check if the response is successful
             if response.status_code == 200:
                 result = response.json()

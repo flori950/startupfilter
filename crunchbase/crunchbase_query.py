@@ -15,8 +15,7 @@ CRUNCHBASE_QUERY = {
         "stock_exchange_symbol",
         "twitter",
         "updated_at",
-        "uuid", 
-        "founded_on",
+        "uuid",
         "website_url",
         "rank_org"
   ],

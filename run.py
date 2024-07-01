@@ -2,10 +2,12 @@ import time
 
 from bigquery.client import BigQueryClient
 from crunchbase.client import CrunchbaseClient
+from linkedin.client import LinkedinClient
 
 from tasks import (
     crunchbase
 )
+
 from config import Config
 
 from logger import Logger as logger
@@ -44,6 +46,17 @@ if __name__ == "__main__":
     else:
         logger.log("Crunchbase is not needed")
         CRUNCHBASE = None
+    
+    # create Linkedin Client if needed
+    if CONFIG.LINKEDIN_NEEDED:
+        logger.log("Creating Linkedin Client")
+        LINKEDIN = LinkedinClient(
+            CONFIG.LINKEDIN_ACCOUNT,
+            CONFIG.LINKEDIN_PWD
+        )
+    else:
+        logger.log("Linkedin is not needed")
+        LINKEDIN = None
 
     # Step 3: BigQuery check Dataset (if not exists, create it)
 
@@ -56,8 +69,14 @@ if __name__ == "__main__":
     if CONFIG.DO_DOWNLOAD:
         logger.info("Start Download Job")
         # run job
-        crunchbase.run_job(CRUNCHBASE, BQClient, CONFIG.DO_UPLOAD)
+        crunchbase.run_job(CRUNCHBASE, BQClient, LINKEDIN, CONFIG.DO_UPLOAD)
         logger.success("Finished Download Job")
+
+    if CONFIG.DO_LINKEDIN:
+        logger.info("Start Linkedin Job")
+        # run job
+        crunchbase.run_job(LINKEDIN)
+        logger.success("Finished Linkedin Job")
 
     # Programm finished
 

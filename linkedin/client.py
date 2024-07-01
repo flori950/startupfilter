@@ -2,8 +2,11 @@ from linkedin_api import Linkedin
 from logger import Logger as logger
 from helpers.decorators import retry
 
+class AccessError(Exception):
+    pass
+
 class LinkedinClient():
-    """ Linkedin client. """
+    """Linkedin client."""
     max_retries = 5
     retry_delay = 10
 
@@ -16,10 +19,14 @@ class LinkedinClient():
             password (str): LinkedIn account password.
         """
         logger.info("LinkedIn Login will be initialized...")
-        self.driver = Linkedin(account, password)
-        logger.info("LinkedIn Client initialized.")
+        self.ACCOUNT = account
+        self.PWD = password
+        try:
+            self.driver = Linkedin(self.ACCOUNT, self.PWD)
+        except Exception as e:
+            logger.error(f"Error testing Linkedin API connectivity: {e}")
+            return False
 
-    @retry(max_retries, retry_delay)
     def get_company_info(self, company_name):
         """
         Get information about a company on LinkedIn.

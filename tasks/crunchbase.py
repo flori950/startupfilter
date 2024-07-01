@@ -1,3 +1,4 @@
+import datetime
 import time
 import json
 import random
@@ -8,34 +9,19 @@ from bigquery.schemes.crunchbase_schema import CRUNCHBASE_SCHEMA
 
 from crunchbase.client import CrunchbaseClient
 from crunchbase.crunchbase_query import CRUNCHBASE_QUERY
+from linkedin.client import LinkedinClient
 from logger import Logger as logger
 from helpers.decorators import calc_time
 from config import Config
 from crunchbase.crunchbase_column_rename import COLUMN_NAME_MAPPING
 from tqdm import tqdm
 
-def run_job(client: CrunchbaseClient, bqclient: BigQueryClient, upload=False):
+def run_job(client: CrunchbaseClient, bqclient: BigQueryClient, linkedinclient: LinkedinClient, upload=False):
+    
     # get data from Crunchbase
-    # logger.log("Fetching data from Crunchbase")
-    # df = get_data(client)
+    logger.log("Fetching data from Crunchbase")
+    df = get_data(client)
 
-    logger.log("Loading data from CSV")
-    df = pd.read_csv("reporting/crunchbase.csv")
- 
-    # Initialize LinkedIn access
-    linkedin_client = LinkedinClient(account='florian.jaeger1@freenet.de', password='JGcLgG0n(AJzUqEI>[)Y')
-    # Scrape LinkedIn company data for each company name in the DataFrame
-    linkedin_data = []
-    for company_name in df['Name']:
-        logger.log(f"Scraping LinkedIn data for company: {company_name}")
-        # Make API call to LinkedIn
-        company_data = linkedin_client.get_company_info(company_name)
-        linkedin_data.append(company_data)
-        # Wait for 10-20 seconds before making the next API call
-        time.sleep(random.uniform(10, 20))
-
-    # Add LinkedIn data to DataFrame
-    df['linkedin_data'] = linkedin_data
     # write data to BigQuery
     if upload:
         logger.log("Uploading data to BigQuery")

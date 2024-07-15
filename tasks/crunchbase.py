@@ -7,7 +7,6 @@ from bigquery.schemes.crunchbase_schema import CRUNCHBASE_SCHEMA
 
 from crunchbase.client import CrunchbaseClient
 from crunchbase.crunchbase_query import CRUNCHBASE_QUERY
-from linkedin.client import LinkedinClient
 from logger import Logger as logger
 from helpers.decorators import calc_time
 from config import Config

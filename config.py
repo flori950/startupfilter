@@ -28,6 +28,7 @@ class Config:
     DO_UPLOAD = False
     DO_LINKEDIN = False
     DO_DOWNLOAD = False
+    DO_ANALYSIS = False
 
 
     # client config
@@ -58,8 +59,9 @@ class Config:
         """ Parse arguments """
         parser = argparse.ArgumentParser(description='Program for downloading data from Crunchbase.')
         parser.add_argument('--download_flag', action='store_true', help='Flag to enable crunchbase data processing.')
+        parser.add_argument('--analysis_flag', action='store_true', help='Flag to enable analysis from csv')
         parser.add_argument('--upload_flag', action='store_true', help='Flag to enable upload data to bigquery processing.')
-        parser.add_argument('--linkedin_flag', action='store_false', help='Flag to enable linkedin data processing.')
+        parser.add_argument('--linkedin_flag', action='store_true', help='Flag to enable linkedin data processing.')
         parser.add_argument('--project_id', help='BigQuery project ID to ignore the environment variable')
         parser.add_argument('--dataset_id', help='BigQuery dataset ID to ignore the environment variable')
         parser.add_argument('--linkedin_account', help='Linkedin account for accessing the API')
@@ -90,9 +92,17 @@ class Config:
         Args:
             args (dict): Arguments
         """
+        if args.analysis_flag:
+            Config.DO_ANALYSIS = args.analysis_flag
+
+        if args.download_flag:
+            Config.DO_DOWNLOAD = args.download_flag
+
+        if args.linkedin_flag:
+            Config.DO_LINKEDIN = args.linkedin_flag
 
         if args.project_id:
-            Config.PROJECT_ID = args.project_idS
+            Config.PROJECT_ID = args.project_id
         else:
             Config.PROJECT_ID = os.getenv("GOOGLE_PROJECT_ID")
         if args.dataset_id:
@@ -118,9 +128,6 @@ class Config:
         Config.CRUNCHBASE_BASE_API = os.getenv("CRUNCHBASE_BASE_API")
         Config.CRUNCHBASE_BASE_URL = os.getenv("CRUNCHBASE_BASE_URL") 
 
-        Config.DO_DOWNLOAD = args.download_flag
-
-
     def set_development_settings(self):
         """
         Set development settings
@@ -131,6 +138,7 @@ class Config:
         logger.debug("Development Mode is enabled")
         # changes for development mode
         Config.DO_UPLOAD = False
+        
 
     def set_production_settings(self, args):
         """
@@ -144,6 +152,7 @@ class Config:
         Config.DO_UPLOAD = args.upload_flag
         Config.DO_DOWNLOAD = args.download_flag
         Config.DO_LINKEDIN = args.linkedin_flag
+        Config.DO_ANALYSIS = args.analysis_flag
 
     def set_preprocessing_settings(self):
         """

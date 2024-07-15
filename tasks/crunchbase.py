@@ -1,7 +1,5 @@
-import datetime
-import time
+from datetime import datetime
 import json
-import random
 import pandas as pd
 from bigquery.client import BigQueryClient
 from bigquery.job_config import CRUNCHBASE_CONFIG
@@ -16,7 +14,7 @@ from config import Config
 from crunchbase.crunchbase_column_rename import COLUMN_NAME_MAPPING
 from tqdm import tqdm
 
-def run_job(client: CrunchbaseClient, bqclient: BigQueryClient, linkedinclient: LinkedinClient, upload=False):
+def run_job(client: CrunchbaseClient, bqclient: BigQueryClient, upload=False):
     
     # get data from Crunchbase
     logger.log("Fetching data from Crunchbase")

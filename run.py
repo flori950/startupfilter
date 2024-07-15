@@ -5,7 +5,9 @@ from crunchbase.client import CrunchbaseClient
 from linkedin.client import LinkedinClient
 
 from tasks import (
-    crunchbase
+    analysis,
+    crunchbase,
+    linkedin
 )
 
 from config import Config
@@ -69,15 +71,20 @@ if __name__ == "__main__":
     if CONFIG.DO_DOWNLOAD:
         logger.info("Start Download Job")
         # run job
-        crunchbase.run_job(CRUNCHBASE, BQClient, LINKEDIN, CONFIG.DO_UPLOAD)
+        crunchbase.run_job(CRUNCHBASE, BQClient, CONFIG.DO_UPLOAD)
         logger.success("Finished Download Job")
 
     if CONFIG.DO_LINKEDIN:
         logger.info("Start Linkedin Job")
         # run job
-        crunchbase.run_job(LINKEDIN)
+        linkedin.run_job(LINKEDIN)
         logger.success("Finished Linkedin Job")
-
+    
+    
+    if CONFIG.DO_ANALYSIS:
+        logger.info("Start Analysis Job")
+        analysis.run_job()
+        logger.info("Finished Analysis Job")
     # Programm finished
 
     _e_time = time.time()

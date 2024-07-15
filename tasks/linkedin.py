@@ -29,7 +29,7 @@ def run_job(linkedinclient: LinkedinClient):
 
     #it will be always saved in reportings for the linkedin search
     logger.debug("Saving data as csv")
-    df.to_csv(f"reporting/crunchbase.csv", index=False)
+    df.to_csv(f"reporting/linkedin.csv", index=False)
 
     # delete dataframes to free up memory
     del df

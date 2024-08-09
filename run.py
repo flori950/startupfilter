@@ -3,7 +3,7 @@ import time
 from bigquery.client import BigQueryClient
 from crunchbase.client import CrunchbaseClient
 from linkedin.client import LinkedinClient
-
+from openai.client import OpenAIClient
 from tasks import (
     analysis,
     crunchbase,
@@ -60,6 +60,15 @@ if __name__ == "__main__":
         logger.log("Linkedin is not needed")
         LINKEDIN = None
 
+    # create Open AI Client if needed
+    if CONFIG.OPENAI_NEEDED:
+        logger.log("Creating Open AI Client")
+        OPENAI = OpenAIClient(
+            #inset here the account 
+        )
+    else:
+        logger.log("Open AI is not needed")
+        OPENAI = None
     # Step 3: BigQuery check Dataset (if not exists, create it)
 
     if CONFIG.BIGQUERY_NEEDED and not BQClient.dataset_exists():
@@ -74,17 +83,25 @@ if __name__ == "__main__":
         crunchbase.run_job(CRUNCHBASE, BQClient, CONFIG.DO_UPLOAD)
         logger.success("Finished Download Job")
 
+    # without upload to BQ
     if CONFIG.DO_LINKEDIN:
-        logger.info("Start Linkedin Job")
+        logger.info("start linkedin job")
         # run job
         linkedin.run_job(LINKEDIN)
-        logger.success("Finished Linkedin Job")
+        logger.success("finished linkedin Job")
     
-    
+    # without upload to BQ
     if CONFIG.DO_ANALYSIS:
-        logger.info("Start Analysis Job")
+        logger.info("Start analysis Job")
         analysis.run_job()
-        logger.info("Finished Analysis Job")
+        logger.info("Finished analysis Job")
+
+    # without upload to BQ
+    if CONFIG.DO_OPENAI:
+        logger.info("Start validation job")
+        # run job
+        crunchbase.run_job(OPENAI, CONFIG.DO_OPENAI)
+        logger.success("Finished validation job")
     # Programm finished
 
     _e_time = time.time()

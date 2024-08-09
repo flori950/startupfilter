@@ -27,6 +27,7 @@ class Config:
     # task config
     DO_UPLOAD = False
     DO_LINKEDIN = False
+    DO_OPENAI = False
     DO_DOWNLOAD = False
     DO_ANALYSIS = False
 
@@ -34,6 +35,7 @@ class Config:
     # client config
     LINKEDIN_NEEDED = False
     CRUNBASE_NEEDED = False
+    OPENAI_NEEDED = False
     BIGQUERY_NEEDED = False
 
     def __init__(self):
@@ -62,6 +64,7 @@ class Config:
         parser.add_argument('--analysis_flag', action='store_true', help='Flag to enable analysis from csv')
         parser.add_argument('--upload_flag', action='store_true', help='Flag to enable upload data to bigquery processing.')
         parser.add_argument('--linkedin_flag', action='store_true', help='Flag to enable linkedin data processing.')
+        parser.add_argument('--validation_flag', action='store_true', help='Flag to enable validation of categorisation with Open AI.')
         parser.add_argument('--project_id', help='BigQuery project ID to ignore the environment variable')
         parser.add_argument('--dataset_id', help='BigQuery dataset ID to ignore the environment variable')
         parser.add_argument('--linkedin_account', help='Linkedin account for accessing the API')
@@ -100,6 +103,9 @@ class Config:
 
         if args.linkedin_flag:
             Config.DO_LINKEDIN = args.linkedin_flag
+        
+        if args.validation_flag:
+            Config.DO_OPENAI = args.validation_flag
 
         if args.project_id:
             Config.PROJECT_ID = args.project_id
@@ -121,6 +127,8 @@ class Config:
             Config.CRUNCHBASE_API_KEY = args.crunchbase_api_key
         else:
             Config.CRUNCHBASE_API_KEY = os.getenv("CRUNCHBASE_API_KEY")
+
+        # insert openai credentials
 
         Config.STAGE = os.getenv("STAGE")
 
@@ -153,6 +161,7 @@ class Config:
         Config.DO_DOWNLOAD = args.download_flag
         Config.DO_LINKEDIN = args.linkedin_flag
         Config.DO_ANALYSIS = args.analysis_flag
+        Config.DO_OPENAI = args.validation_flag
 
     def set_preprocessing_settings(self):
         """
@@ -164,10 +173,15 @@ class Config:
         Config.CRUNBASE_NEEDED = any([
             Config.DO_DOWNLOAD
         ])
-        # Crunchbase is needed if Linkedin processing tasks are enabled
+        # Download from Crunchbase is needed if Linkedin processing tasks are enabled
         Config.LINKEDIN_NEEDED = any([
             Config.DO_DOWNLOAD,
             Config.DO_LINKEDIN
+        ])
+        # Crunchbase is needed if Open AI processing tasks are enabled
+        Config.OPENAI_NEEDED = any([
+            Config.DO_DOWNLOAD,
+            Config.DO_OPENAI
         ])
         # BigQuery is needed if this tasks are enabled
         Config.BIGQUERY_NEEDED = any([

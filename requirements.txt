@@ -8,3 +8,4 @@ db_dtypes==1.2.0
 colorama
 python-dotenv
 linkedin-api
+openai

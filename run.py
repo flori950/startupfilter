@@ -64,7 +64,8 @@ if __name__ == "__main__":
     if CONFIG.OPENAI_NEEDED:
         logger.log("Creating Open AI Client")
         OPENAI = OpenAIClient(
-            #inset here the account 
+            CONFIG.OPENAI_API_KEY,
+            CONFIG.OPENAI_BASE_URL
         )
     else:
         logger.log("Open AI is not needed")

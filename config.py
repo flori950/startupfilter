@@ -24,6 +24,9 @@ class Config:
     LINKEDIN_ACCOUNT = None
     LINKEDIN_PWD = None
 
+    OPENAI_BASE_URL = None
+    OPENAI_API_KEY = None
+
     # task config
     DO_UPLOAD = False
     DO_LINKEDIN = False

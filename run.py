@@ -50,15 +50,15 @@ if __name__ == "__main__":
         CRUNCHBASE = None
     
     # create Linkedin Client if needed
-    # if CONFIG.LINKEDIN_NEEDED:
-    #     logger.log("Creating Linkedin Client")
-    #     LINKEDIN = LinkedinClient(
-    #         CONFIG.LINKEDIN_ACCOUNT,
-    #         CONFIG.LINKEDIN_PWD
-    #     )
-    # else:
-    #     logger.log("Linkedin is not needed")
-    #     LINKEDIN = None
+    if CONFIG.LINKEDIN_NEEDED:
+        logger.log("Creating Linkedin Client")
+        LINKEDIN = LinkedinClient(
+            CONFIG.LINKEDIN_ACCOUNT,
+            CONFIG.LINKEDIN_PWD
+        )
+    else:
+        logger.log("Linkedin is not needed")
+        LINKEDIN = None
 
     # create Open AI Client if needed
     if CONFIG.OPENAI_NEEDED:
@@ -85,11 +85,11 @@ if __name__ == "__main__":
         logger.success("Finished Download Job")
 
     # without upload to BQ
-    # if CONFIG.DO_LINKEDIN:
-    #     logger.info("start linkedin job")
-    #     # run job
-    #     linkedin.run_job(LINKEDIN)
-    #     logger.success("finished linkedin Job")
+    if CONFIG.DO_LINKEDIN:
+        logger.info("start linkedin job")
+        # run job
+        linkedin.run_job(LINKEDIN)
+        logger.success("finished linkedin Job")
     
     # without upload to BQ
     if CONFIG.DO_ANALYSIS:

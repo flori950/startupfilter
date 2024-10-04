@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from company_keywords.keywords import Keywords
 from logger import Logger as logger
+from tasks.mapping import generate_germany_map
 
 def categorize_company(row):
     description = row['Short_Description'].lower()
@@ -38,13 +39,21 @@ def run_job():
     # Filter out rows where categories are 'Uncategorized'
     df_filtered = df[df['Categorization'] != 'Uncategorized']
 
-    # Select only the necessary columns
-    df_filtered = df_filtered[['Company_Name', 'Short_Description', 'Categorization']]
+    # Select the necessary columns including address (City, Region, Country)
+    df_filtered = df_filtered[['Company_Name', 'Short_Description', 'Categorization', 'City', 'Region', 'Country']]
 
     # Save categorized data as CSV
-    logger.log("Saving categorized data as csv")
-    df_filtered.to_csv("reporting/categorized_crunchbase.csv", index=False)
+    logger.log("Saving categorized data as csv with address details")
+    output_csv = "reporting/categorized_crunchbase_with_address.csv"
+    df_filtered.to_csv(output_csv, index=False)
+
+    # Call the function to generate the map after saving the CSV
+    logger.log("Generating map based on categorized data")
+    generate_germany_map(output_csv, "reporting/germany_re_strategy_map.png")
 
     # Clean up memory
     del df
     del df_filtered
+
+    # Log that the job is complete
+    logger.log("Job complete.")

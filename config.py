@@ -21,22 +21,23 @@ class Config:
     CRUNCHBASE_BASE_URL = None
     CRUNCHBASE_API_KEY = None
 
-    LINKEDIN_ACCOUNT = None
-    LINKEDIN_PWD = None
+    # for future implementations
+    # LINKEDIN_ACCOUNT = None
+    # LINKEDIN_PWD = None
 
     OPENAI_BASE_URL = None
     OPENAI_API_KEY = None
 
     # task config
     DO_UPLOAD = False
-    DO_LINKEDIN = False
+    # DO_LINKEDIN = False
     DO_OPENAI = False
     DO_DOWNLOAD = False
     DO_ANALYSIS = False
 
 
     # client config
-    LINKEDIN_NEEDED = False
+    # LINKEDIN_NEEDED = False
     CRUNBASE_NEEDED = False
     OPENAI_NEEDED = False
     BIGQUERY_NEEDED = False
@@ -66,12 +67,12 @@ class Config:
         parser.add_argument('--download_flag', action='store_true', help='Flag to enable crunchbase data processing.')
         parser.add_argument('--analysis_flag', action='store_true', help='Flag to enable analysis from csv')
         parser.add_argument('--upload_flag', action='store_true', help='Flag to enable upload data to bigquery processing.')
-        parser.add_argument('--linkedin_flag', action='store_true', help='Flag to enable linkedin data processing.')
+        # parser.add_argument('--linkedin_flag', action='store_true', help='Flag to enable linkedin data processing.')
         parser.add_argument('--validation_flag', action='store_true', help='Flag to enable validation of categorisation with Open AI.')
         parser.add_argument('--project_id', help='BigQuery project ID to ignore the environment variable')
         parser.add_argument('--dataset_id', help='BigQuery dataset ID to ignore the environment variable')
-        parser.add_argument('--linkedin_account', help='Linkedin account for accessing the API')
-        parser.add_argument('--linkedin_pwd', help='Linkedin account password for accessing the API')
+        # parser.add_argument('--linkedin_account', help='Linkedin account for accessing the API')
+        # parser.add_argument('--linkedin_pwd', help='Linkedin account password for accessing the API')
         parser.add_argument('--crunchbase_api_key', help='If it should be started via cronejob the Crunchbase API could be added here')
         return parser.parse_args()
 
@@ -104,8 +105,8 @@ class Config:
         if args.download_flag:
             Config.DO_DOWNLOAD = args.download_flag
 
-        if args.linkedin_flag:
-            Config.DO_LINKEDIN = args.linkedin_flag
+        # if args.linkedin_flag:
+        #     Config.DO_LINKEDIN = args.linkedin_flag
         
         if args.validation_flag:
             Config.DO_OPENAI = args.validation_flag
@@ -118,14 +119,14 @@ class Config:
             Config.DATASET_ID = args.dataset_id
         else:
             Config.DATASET_ID = os.getenv("GOOGLE_DATASET_ID")
-        if args.linkedin_account:
-            Config.LINKEDIN_ACCOUNT = args.linkedin_account
-        else:
-            Config.LINKEDIN_ACCOUNT = os.getenv("LINKEDIN_ACCOUNT")
-        if args.linkedin_pwd:
-            Config.LINKEDIN_PWD = args.linkedin_pwd
-        else:
-            Config.LINKEDIN_PWD = os.getenv("LINKEDIN_PWD")
+        # if args.linkedin_account:
+        #     Config.LINKEDIN_ACCOUNT = args.linkedin_account
+        # else:
+        #     Config.LINKEDIN_ACCOUNT = os.getenv("LINKEDIN_ACCOUNT")
+        # if args.linkedin_pwd:
+        #     Config.LINKEDIN_PWD = args.linkedin_pwd
+        # else:
+        #     Config.LINKEDIN_PWD = os.getenv("LINKEDIN_PWD")
         if args.crunchbase_api_key:
             Config.CRUNCHBASE_API_KEY = args.crunchbase_api_key
         else:
@@ -162,7 +163,7 @@ class Config:
         """
         Config.DO_UPLOAD = args.upload_flag
         Config.DO_DOWNLOAD = args.download_flag
-        Config.DO_LINKEDIN = args.linkedin_flag
+        # Config.DO_LINKEDIN = args.linkedin_flag
         Config.DO_ANALYSIS = args.analysis_flag
         Config.DO_OPENAI = args.validation_flag
 
@@ -177,10 +178,10 @@ class Config:
             Config.DO_DOWNLOAD
         ])
         # Download from Crunchbase is needed if Linkedin processing tasks are enabled
-        Config.LINKEDIN_NEEDED = any([
-            Config.DO_DOWNLOAD,
-            Config.DO_LINKEDIN
-        ])
+        # Config.LINKEDIN_NEEDED = any([
+        #     Config.DO_DOWNLOAD,
+        #     Config.DO_LINKEDIN
+        # ])
         # Crunchbase is needed if Open AI processing tasks are enabled
         Config.OPENAI_NEEDED = any([
             Config.DO_DOWNLOAD,

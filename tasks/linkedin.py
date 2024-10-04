@@ -5,6 +5,7 @@ import pandas as pd
 from linkedin.client import LinkedinClient
 from logger import Logger as logger
 
+# TODO: Upload to Bigquery
 
 def run_job(linkedinclient: LinkedinClient):
     

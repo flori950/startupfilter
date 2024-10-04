@@ -18,16 +18,13 @@ def run_job(client: CrunchbaseClient, bqclient: BigQueryClient, upload=False):
     # get data from Crunchbase
     logger.log("Fetching data from Crunchbase")
     df = get_data(client)
-
+    logger.debug("Saving data as csv")
+    df.to_csv(f"reporting/crunchbase.csv", index=False)
+    
     # write data to BigQuery
     if upload:
         logger.log("Uploading data to BigQuery")
         upload_df(bqclient, df)
-
-    # save dataframe as csv if DEV_MODE is True
-    if Config.DEV_MODE:
-        logger.debug("Saving data as csv")
-        df.to_csv(f"reporting/crunchbase.csv", index=False)
 
     # delete dataframes to free up memory
     del df
@@ -95,7 +92,7 @@ def get_data(client: CrunchbaseClient) -> pd.DataFrame:
 
         return raw
     except Exception as e:
-        print(f"Error in getting data from Crunchbase: {e}")
+        logger.error(f"Error in getting data from Crunchbase: {e}")
 
 @calc_time
 def upload_df(client: BigQueryClient, dataframe: pd.DataFrame):

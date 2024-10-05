@@ -125,13 +125,16 @@ def generate_germany_map(categorized_csv, output_image, cache_file='city_coords_
                     lat, lon = city_coords[city]
                     ax.scatter(lon, lat, s=row[strategy] * 50, color=colors(i), alpha=0.6, edgecolor='black', label=strategy)
 
-    legend_elements = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors(i), markersize=10, label=strategy) for i, strategy in enumerate(strategies)]
-    plt.legend(handles=legend_elements, title="RE Strategies", loc='upper right')
+    # Create a legend with multiple columns and smaller marker size
+    legend_elements = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors(i), markersize=8, label=strategy) for i, strategy in enumerate(strategies)]
+    
+    # Set number of columns in the legend
+    plt.legend(handles=legend_elements, title="RE Strategies", loc='upper left', bbox_to_anchor=(1, 1), ncol=2, fontsize='small', title_fontsize='medium')
 
     plt.title('Distribution of Companies in Germany by Circular Economy RE Strategies')
 
     logger.info(f"Saving map to {output_image}")
-    plt.savefig(output_image, dpi=300)
+    plt.savefig(output_image, dpi=300, bbox_inches='tight')  # Ensure everything fits within the output image
 
     plt.show()
     logger.info("Map generation completed")

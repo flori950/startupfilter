@@ -26,7 +26,8 @@ class LinkedinClient():
         except Exception as e:
             logger.error(f"Error testing Linkedin API connectivity: {e}")
             return False
-
+        
+    @retry(max_retries, retry_delay)
     def get_company_info(self, company_name):
         """
         Get information about a company on LinkedIn.

@@ -9,3 +9,5 @@ colorama
 python-dotenv
 linkedin-api
 openai
+geopandas
+matplotlib

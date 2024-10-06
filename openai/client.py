@@ -6,7 +6,7 @@ from logger import Logger as logger
 class AccessError(Exception):
     pass
 
-class OpenAIClient:
+class OpenAIClient():
     """ Open AI Client """
     max_retries = 5
     retry_delay = 10

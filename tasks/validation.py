@@ -6,6 +6,17 @@ from logger import Logger as logger
 from company_keywords.keywords import Keywords
 from openai_request.client import OpenAIClient
 from openai_request.openai_requests_prompt import construct_prompt
+from tasks.mapping import generate_germany_map
+
+def run_job(client: OpenAIClient, bqclient: BigQueryClient, upload=False):
+
+    #TODO bigquery upload
+    # Process the CSV and add the OpenAI responses
+    input_csv = 'reporting/categorized_crunchbase_with_address.csv'
+    output_csv = 'reporting/categorized_crunchbase_with_openai_responses.csv'
+    re_strategies = Keywords.re_strategies
+
+    process_csv_and_save(input_csv, output_csv, re_strategies, client)
 
 def validate_columns(df, required_columns):
     """
@@ -33,20 +44,31 @@ def handle_row_error(row, error_message):
     logger.error(f"Error processing row: {row}. Error: {error_message}")
     return "Error in OpenAI response"
 
-def load_cache(cache_file='openai_cache.json'):
-    """
-    Loads the cache from a JSON file. If the file does not exist, it returns an empty dictionary.
-    """
-    if os.path.exists(cache_file):
-        with open(cache_file, 'r') as f:
+# Function to load or create cache in the 'reporting' folder
+def load_cache(cache_file):
+    reporting_folder = os.path.join(os.getcwd(), 'reporting')
+    cache_file_path = os.path.join(reporting_folder, cache_file)
+
+    if not os.path.exists(reporting_folder):
+        os.makedirs(reporting_folder)
+
+    if os.path.exists(cache_file_path):
+        logger.info(f"Loading cache from {cache_file_path}")
+        with open(cache_file_path, 'r') as f:
             return json.load(f)
+    logger.info(f"No cache found. Starting fresh.")
     return {}
 
-def save_cache(cache, cache_file='openai_cache.json'):
-    """
-    Saves the cache to a JSON file.
-    """
-    with open(cache_file, 'w') as f:
+# Function to save cache to a file in the 'reporting' folder
+def save_cache(cache, cache_file):
+    reporting_folder = os.path.join(os.getcwd(), 'reporting')
+    cache_file_path = os.path.join(reporting_folder, cache_file)
+
+    if not os.path.exists(reporting_folder):
+        os.makedirs(reporting_folder)
+
+    logger.info(f"Saving cache to {cache_file_path}")
+    with open(cache_file_path, 'w') as f:
         json.dump(cache, f)
 
 def get_cache_key(company_name, city, country, strategy_code):
@@ -57,7 +79,7 @@ def get_cache_key(company_name, city, country, strategy_code):
 
 def process_csv_and_save(input_csv, output_csv, strategy_dict, openai_client, cache_file='openai_cache.json'):
     """
-    Reads the categorized Crunchbase CSV, sends each entry to OpenAI, and adds the OpenAI response
+    Reads the categorized Crunchbase CSV, sends each entry to OpenAI, and adds the strategy code and term or a disagreement message
     as a new column 'openai_answer'. Saves the new DataFrame to a new CSV, using caching.
     """
     logger.info(f"Loading data from {input_csv}")
@@ -80,16 +102,15 @@ def process_csv_and_save(input_csv, output_csv, strategy_dict, openai_client, ca
             company_name = row['Company_Name']
             city = row['City']
             country = row['Country']
-            strategy_codes = row['RE_Strategy_Codes'].split(", ")  # Multiple strategy codes (R0, R1, etc.)
-            strategy_names = row['RE_Strategy_Names'].split(", ")  # Corresponding strategy names
+            strategy_codes = row['RE_Strategy_Codes'].split(", ")
             short_description = row['Short_Description']
 
-            # Iterate over each strategy code and name
-            all_responses = []
-            for strategy_code, strategy_name in zip(strategy_codes, strategy_names):
+            # Iterate over each strategy code
+            strategy_code_and_term = []
+            for strategy_code in strategy_codes:
                 # Validate strategy code
                 if not validate_strategy_code(strategy_code, strategy_dict):
-                    all_responses.append(f"Invalid strategy code: {strategy_code}")
+                    strategy_code_and_term.append(f"Invalid strategy code: {strategy_code}")
                     continue
 
                 # Generate a unique cache key based on company and strategy
@@ -98,7 +119,7 @@ def process_csv_and_save(input_csv, output_csv, strategy_dict, openai_client, ca
                 # Check if the result is already cached
                 if cache_key in cache:
                     logger.info(f"Using cached response for {company_name} ({strategy_code})")
-                    all_responses.append(cache[cache_key])
+                    strategy_code_and_term.append(cache[cache_key])
                     continue
 
                 # Construct the OpenAI prompt for each strategy
@@ -108,39 +129,34 @@ def process_csv_and_save(input_csv, output_csv, strategy_dict, openai_client, ca
                 logger.info(f"Sending request to OpenAI for {company_name} ({strategy_code})")
                 response = openai_client.get_openai_response(messages)
 
-                # Store the response in the cache and append it to the results
-                cache[cache_key] = response
-                all_responses.append(response)
+                # Add the response (either "R0: Refuse" or "Disagree: explanation")
+                strategy_code_and_term.append(response)
 
-                # Save cache after every response
+                # Cache the response
+                cache[cache_key] = response
+
+                # Save cache after every row
                 save_cache(cache, cache_file)
 
             # Join the multiple responses into a single string for each company
-            openai_responses.append(" | ".join(all_responses))
+            openai_responses.append(", ".join(strategy_code_and_term))
 
         except Exception as e:
             openai_responses.append(handle_row_error(row, str(e)))
 
-    # Add the OpenAI responses as a new column
+    # Add the responses as a new column
     df['openai_answer'] = openai_responses
 
     # Save the updated DataFrame to the output CSV
     logger.info(f"Saving new CSV with OpenAI responses to {output_csv}")
     df.to_csv(output_csv, index=False)
 
-    # Save the final cache file
-    save_cache(cache, cache_file)
+    # Call the function to generate the map after saving the CSV
+    # logger.log("Generating map based on categorized data")
+    # generate_germany_map(output_csv, "reporting/germany_re_strategy_map_ai_response.png")
 
     # Explicitly delete the DataFrame and clear memory
     del df
     logger.log("Validation job complete.")
 
-def run_job(client: OpenAIClient, bqclient: BigQueryClient, upload=False):
 
-    #TODO bigquery upload
-    # Process the CSV and add the OpenAI responses
-    input_csv = 'reporting/categorized_crunchbase_with_address.csv'
-    output_csv = 'reporting/categorized_crunchbase_with_openai_responses.csv'
-    re_strategies = Keywords.re_strategies_2
-
-    process_csv_and_save(input_csv, output_csv, re_strategies, client)

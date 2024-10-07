@@ -14,7 +14,7 @@ def construct_prompt(company_name, city, country, strategy_code, short_descripti
     Returns:
         list: A list of messages with system and user roles for OpenAI API.
     """
-    strategy = Keywords.re_strategies_2.get(strategy_code)
+    strategy = Keywords.re_strategies.get(strategy_code)
     if not strategy:
         raise ValueError(f"Strategy code {strategy_code} not found in Keywords")
 
@@ -22,16 +22,16 @@ def construct_prompt(company_name, city, country, strategy_code, short_descripti
     messages = [
         {
             "role": "system",
-            "content": "You are a helpful assistant that provides only concise, structured answers."
+            "content": "You are a helpful assistant that provides concise answers."
         },
         {
             "role": "user",
             "content": (
-                f"Please only provide the circular economy strategy code and name for the company '{company_name}' "
-                f"located in {city}, {country}. "
-                f"The company description is '{short_description}'. "
-                f"The strategy '{strategy_code}' is '{strategy['name']}'.\n"
-                f"Output format: R8: Recycle. Do not include any explanation or additional information."
+                f"Analyze if the company '{company_name}' located in {city}, {country}, "
+                f"with the description '{short_description}', can apply the circular economy strategy "
+                f"'{strategy['name']}' defined as '{strategy['definition']}'. "
+                f"If you agree, provide the output in the format: R{strategy_code}: \{strategy['name']}\. "
+                f"If you disagree, respond with 'Disagree' and give a short explanation."
             )
         }
     ]

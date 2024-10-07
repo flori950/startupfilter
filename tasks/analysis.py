@@ -10,7 +10,7 @@ def categorize_company(row):
     matched_names = []
 
     # Check for all matching RE strategies (both code and name)
-    for key, strategy in Keywords.re_strategies_2.items():
+    for key, strategy in Keywords.re_strategies.items():
         # Check if the strategy name exists in the company description
         if strategy['name'].lower() in description:
             matched_codes.append(key)  # Append the strategy code like 'R0', 'R1'

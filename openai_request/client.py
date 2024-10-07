@@ -17,7 +17,6 @@ class OpenAIClient():
 
         Args:
             OPENAI_API_KEY (str): The API key for OpenAI.
-            base_url (str): The OpenAI base URL.
         """
         try:
             self.OPENAI_API_KEY = api_key
@@ -47,10 +46,9 @@ class OpenAIClient():
             logger.error(f"Error testing API connectivity: {e}")
             return False
 
-    @retry(max_retries, retry_delay)
-    def get_openai_response(self, messages, model="gpt-3.5-turbo", max_tokens=100, temperature=0.7):
+    def get_openai_response(self, messages, model="gpt-3.5-turbo", max_tokens=100, temperature=0.5):
         """
-        Sends a chat request to the OpenAI API using the GPT-3.5 Turbo model.
+        Sends a chat request to the OpenAI API using the GPT-3.5 Turbo model via `requests.post()`.
 
         Args:
             messages (list): A list of dictionaries containing the role and content of the messages.
@@ -59,16 +57,33 @@ class OpenAIClient():
             temperature (float): Sampling temperature to control creativity.
 
         Returns:
-            dict: The JSON response from the OpenAI API.
+            str: The content of the response from OpenAI.
         """
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.OPENAI_API_KEY}"
+        }
+        
+        data = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature
+        }
+
         try:
-            response = openai.ChatCompletion.create(
-                model=model,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature
-            )
-            return response  # Return the full response
-        except Exception as e:
-            logger.error(f"Error making OpenAI request: {e}")
+            response = requests.post(url, headers=headers, json=data)
+
+            if response.status_code == 200:
+                logger.success("Successfully received a response from OpenAI")
+                
+                # Extract the content from the first choice in the response
+                return response.json()['choices'][0]['message']['content'].strip()
+            else:
+                logger.error(f"Error: {response.status_code} - {response.text}")
+                raise AccessError(f"Failed to retrieve data from OpenAI API: {response.text}")
+        
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request to OpenAI failed: {e}")
             raise AccessError("Failed to retrieve data from OpenAI API") from e

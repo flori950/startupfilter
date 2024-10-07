@@ -2,8 +2,8 @@ import time
 
 from bigquery.client import BigQueryClient
 from crunchbase.client import CrunchbaseClient
-from linkedin.client import LinkedinClient
-from openai.client import OpenAIClient
+from linkedin_request.client import LinkedinClient
+from openai_request.client import OpenAIClient
 from tasks import (
     analysis,
     crunchbase,

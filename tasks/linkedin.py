@@ -2,7 +2,7 @@ import time
 import random
 import pandas as pd
 
-from linkedin.client import LinkedinClient
+from linkedin_request.client import LinkedinClient
 from logger import Logger as logger
 
 # TODO: Upload to Bigquery

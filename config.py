@@ -20,13 +20,11 @@ class Config:
     CRUNCHBASE_BASE_API = None
     CRUNCHBASE_BASE_URL = None
     CRUNCHBASE_API_KEY = None
+    OPENAI_API_KEY = None
 
     # for future implementations
-    # LINKEDIN_ACCOUNT = None
-    # LINKEDIN_PWD = None
-
-    OPENAI_BASE_URL = None
-    OPENAI_API_KEY = None
+    LINKEDIN_ACCOUNT = None
+    LINKEDIN_PWD = None
 
     # task config
     DO_UPLOAD = False
@@ -68,12 +66,13 @@ class Config:
         parser.add_argument('--analysis_flag', action='store_true', help='Flag to enable analysis from csv')
         parser.add_argument('--upload_flag', action='store_true', help='Flag to enable upload data to bigquery processing.')
         parser.add_argument('--linkedin_flag', action='store_true', help='Flag to enable linkedin data processing.')
-        parser.add_argument('--validation_flag', action='store_true', help='Flag to enable validation of categorisation with Open AI.')
+        parser.add_argument('--validation_flag', action='store_true', help='Flag to enable validation of categorisation with AI.')
         parser.add_argument('--project_id', help='BigQuery project ID to ignore the environment variable')
         parser.add_argument('--dataset_id', help='BigQuery dataset ID to ignore the environment variable')
         parser.add_argument('--linkedin_account', help='Linkedin account for accessing the API')
         parser.add_argument('--linkedin_pwd', help='Linkedin account password for accessing the API')
         parser.add_argument('--crunchbase_api_key', help='If it should be started via cronejob the Crunchbase API could be added here')
+        parser.add_argument('--openai_api_key', help='If it should be started via cronejob the OpenAI API could be added here')
         return parser.parse_args()
 
     def load_environment(self):
@@ -131,6 +130,10 @@ class Config:
             Config.CRUNCHBASE_API_KEY = args.crunchbase_api_key
         else:
             Config.CRUNCHBASE_API_KEY = os.getenv("CRUNCHBASE_API_KEY")
+        if args.openai_api_key:
+            Config.OPENAI_API_KEY = args.openai_api_key
+        else:
+            Config.OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
         # insert openai credentials
 
@@ -163,7 +166,7 @@ class Config:
         """
         Config.DO_UPLOAD = args.upload_flag
         Config.DO_DOWNLOAD = args.download_flag
-        # Config.DO_LINKEDIN = args.linkedin_flag
+        Config.DO_LINKEDIN = args.linkedin_flag
         Config.DO_ANALYSIS = args.analysis_flag
         Config.DO_OPENAI = args.validation_flag
 

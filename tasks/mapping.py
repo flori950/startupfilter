@@ -101,7 +101,7 @@ def generate_germany_map(categorized_csv, output_image, cache_file='city_coords_
 
     save_cache(city_coords_cache, cache_file)
 
-    city_counts = df_germany.groupby(['City', 'Categorization']).size().unstack(fill_value=0)
+    city_counts = df_germany.groupby(['City', 'RE_Strategy_Names']).size().unstack(fill_value=0)
 
     # Load the Germany shapefile from the provided path
     logger.info("Loading Germany shapefile")

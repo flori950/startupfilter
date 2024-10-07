@@ -7,7 +7,8 @@ from openai.client import OpenAIClient
 from tasks import (
     analysis,
     crunchbase,
-    linkedin
+    linkedin,
+    validation
 )
 
 from config import Config
@@ -21,7 +22,6 @@ if __name__ == "__main__":
     # Step 1: Get Arguments and Environment Variables to set Config
 
     CONFIG = Config()
-
     # Step 2: Create Clients depending on Config
 
     logger.info("Create Clients")
@@ -64,8 +64,7 @@ if __name__ == "__main__":
     if CONFIG.OPENAI_NEEDED:
         logger.log("Creating Open AI Client")
         OPENAI = OpenAIClient(
-            CONFIG.OPENAI_API_KEY,
-            CONFIG.OPENAI_BASE_URL
+            CONFIG.OPENAI_API_KEY
         )
     else:
         logger.log("Open AI is not needed")
@@ -101,7 +100,7 @@ if __name__ == "__main__":
     if CONFIG.DO_OPENAI:
         logger.info("Start validation job")
         # run job
-        crunchbase.run_job(OPENAI, CONFIG.DO_OPENAI)
+        validation.run_job(OPENAI, CONFIG.DO_OPENAI)
         logger.success("Finished validation job")
     # Programm finished
 

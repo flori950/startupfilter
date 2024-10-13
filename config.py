@@ -102,7 +102,7 @@ class Config:
         if args.analysis_flag:
             Config.DO_ANALYSIS = args.analysis_flag
                 
-        if args.analysis_flag:
+        if args.mapping_flag:
             Config.DO_MAPPING = args.mapping_flag
 
         if args.download_flag:

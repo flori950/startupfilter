@@ -101,7 +101,12 @@ if __name__ == "__main__":
         logger.info("Start mapping Job")
         logger.log("Generating map based on categorized data")
         output_csv = "reporting/categorized_crunchbase_with_address.csv"
-        mapping.generate_germany_map(output_csv, "reporting/germany_re_strategy_map.png")
+        # mapping.generate_germany_map(output_csv, "reporting/germany_re_strategy_map.png")
+        logger.log("Done with unvalidated data mapping")
+        logger.log("Generating map based on validated categorized data")
+        categorized_csv = 'reporting/categorized_crunchbase_with_openai_responses.csv'
+        # Call the function to generate maps for the validation results
+        mapping.generate_germany_map_with_validation(categorized_csv, "reporting/germany_re_strategy_map_validated.png")
         logger.info("Finished mapping Job")
 
     # without upload to BQ

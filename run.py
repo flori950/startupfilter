@@ -8,13 +8,13 @@ from tasks import (
     analysis,
     crunchbase,
     linkedin,
-    validation
+    validation,
+    mapping
 )
 
 from config import Config
 
 from logger import Logger as logger
-from tasks.mapping import generate_germany_map
 
 
 if __name__ == "__main__":
@@ -26,7 +26,6 @@ if __name__ == "__main__":
     # Step 2: Create Clients depending on Config
 
     logger.info("Create Clients")
-
     # create Bigquery Client if needed
     if CONFIG.BIGQUERY_NEEDED:
         logger.log("Creating BigQuery Client")
@@ -99,11 +98,11 @@ if __name__ == "__main__":
 
     # without upload to BQ
     if CONFIG.DO_MAPPING:
-        logger.info("Start analysis Job")
+        logger.info("Start mapping Job")
         logger.log("Generating map based on categorized data")
         output_csv = "reporting/categorized_crunchbase_with_address.csv"
-        generate_germany_map(output_csv, "reporting/germany_re_strategy_map.png")
-        logger.info("Finished analysis Job")
+        mapping.generate_germany_map(output_csv, "reporting/germany_re_strategy_map.png")
+        logger.info("Finished mapping Job")
 
     # without upload to BQ
     if CONFIG.DO_OPENAI:

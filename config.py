@@ -64,7 +64,7 @@ class Config:
         parser = argparse.ArgumentParser(description='Program for downloading data from Crunchbase.')
         parser.add_argument('--download_flag', action='store_true', help='Flag to enable crunchbase data processing.')
         parser.add_argument('--analysis_flag', action='store_true', help='Flag to enable analysis from csv')
-        parser.add_argument('--mappimg_flag', action='store_true', help='Flag to enable map analyzed companies from csv')
+        parser.add_argument('--mapping_flag', action='store_true', help='Flag to enable map analyzed companies from csv')
         parser.add_argument('--upload_flag', action='store_true', help='Flag to enable upload data to bigquery processing.')
         parser.add_argument('--linkedin_flag', action='store_true', help='Flag to enable linkedin data processing.')
         parser.add_argument('--validation_flag', action='store_true', help='Flag to enable validation of categorisation with AI.')

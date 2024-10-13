@@ -50,10 +50,6 @@ def run_job():
     output_csv = "reporting/categorized_crunchbase_with_address.csv"
     df_filtered.to_csv(output_csv, index=False)
 
-    # Call the function to generate the map after saving the CSV
-    logger.log("Generating map based on categorized data")
-    generate_germany_map(output_csv, "reporting/germany_re_strategy_map.png")
-
     # Clean up memory
     del df
     del df_filtered

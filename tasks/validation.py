@@ -46,11 +46,11 @@ def handle_row_error(row, error_message):
 
 # Function to load or create cache in the 'reporting' folder
 def load_cache(cache_file):
-    reporting_folder = os.path.join(os.getcwd(), 'reporting')
-    cache_file_path = os.path.join(reporting_folder, cache_file)
+    cache_folder = os.path.join(os.getcwd(), 'cache')
+    cache_file_path = os.path.join(cache_folder, cache_file)
 
-    if not os.path.exists(reporting_folder):
-        os.makedirs(reporting_folder)
+    if not os.path.exists(cache_folder):
+        os.makedirs(cache_folder)
 
     if os.path.exists(cache_file_path):
         logger.info(f"Loading cache from {cache_file_path}")
@@ -61,11 +61,11 @@ def load_cache(cache_file):
 
 # Function to save cache to a file in the 'reporting' folder
 def save_cache(cache, cache_file):
-    reporting_folder = os.path.join(os.getcwd(), 'reporting')
-    cache_file_path = os.path.join(reporting_folder, cache_file)
+    cache_folder = os.path.join(os.getcwd(), 'cache')
+    cache_file_path = os.path.join(cache_folder, cache_file)
 
-    if not os.path.exists(reporting_folder):
-        os.makedirs(reporting_folder)
+    if not os.path.exists(cache_folder):
+        os.makedirs(cache_folder)
 
     logger.info(f"Saving cache to {cache_file_path}")
     with open(cache_file_path, 'w') as f:

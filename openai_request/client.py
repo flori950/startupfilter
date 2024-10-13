@@ -46,7 +46,7 @@ class OpenAIClient():
             logger.error(f"Error testing API connectivity: {e}")
             return False
 
-    def get_openai_response(self, messages, model="gpt-3.5-turbo", max_tokens=100, temperature=0.5):
+    def get_openai_response(self, messages, model="gpt-3.5-turbo", max_tokens=100, temperature=0.7):
         """
         Sends a chat request to the OpenAI API using the GPT-3.5 Turbo model via `requests.post()`.
 

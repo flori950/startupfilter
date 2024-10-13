@@ -80,7 +80,7 @@ def get_cache_key(company_name, city, country, strategy_code):
 def process_csv_and_save(input_csv, output_csv, strategy_dict, openai_client, cache_file='openai_cache.json'):
     """
     Reads the categorized Crunchbase CSV, sends each entry to OpenAI, and adds the strategy code and term or a disagreement message
-    as a new column 'openai_answer'. Saves the new DataFrame to a new CSV, using caching.
+    as new columns 'openai_agreement', 'openai_strategy', and 'openai_explanation'. Saves the new DataFrame to a CSV, using caching.
     """
     logger.info(f"Loading data from {input_csv}")
     
@@ -95,8 +95,12 @@ def process_csv_and_save(input_csv, output_csv, strategy_dict, openai_client, ca
     if not validate_columns(df, required_columns):
         return
     
+    # Initialize lists for new columns
+    openai_agreements = []
+    openai_strategies = []
+    openai_explanations = []
+
     # Loop through each row and generate OpenAI responses
-    openai_responses = []
     for _, row in df.iterrows():
         try:
             company_name = row['Company_Name']
@@ -106,11 +110,12 @@ def process_csv_and_save(input_csv, output_csv, strategy_dict, openai_client, ca
             short_description = row['Short_Description']
 
             # Iterate over each strategy code
-            strategy_code_and_term = []
             for strategy_code in strategy_codes:
                 # Validate strategy code
                 if not validate_strategy_code(strategy_code, strategy_dict):
-                    strategy_code_and_term.append(f"Invalid strategy code: {strategy_code}")
+                    openai_agreements.append("Invalid")
+                    openai_strategies.append(f"Invalid strategy code: {strategy_code}")
+                    openai_explanations.append("")
                     continue
 
                 # Generate a unique cache key based on company and strategy
@@ -119,44 +124,75 @@ def process_csv_and_save(input_csv, output_csv, strategy_dict, openai_client, ca
                 # Check if the result is already cached
                 if cache_key in cache:
                     logger.info(f"Using cached response for {company_name} ({strategy_code})")
-                    strategy_code_and_term.append(cache[cache_key])
-                    continue
+                    response = cache[cache_key]
+                else:
+                    # Construct the OpenAI prompt for each strategy
+                    messages = construct_prompt(company_name, city, country, strategy_code, short_description)
 
-                # Construct the OpenAI prompt for each strategy
-                messages = construct_prompt(company_name, city, country, strategy_code, short_description)
+                    # Get OpenAI response
+                    logger.info(f"Sending request to OpenAI for {company_name} ({strategy_code})")
+                    response = openai_client.get_openai_response(messages)
 
-                # Get OpenAI response
-                logger.info(f"Sending request to OpenAI for {company_name} ({strategy_code})")
-                response = openai_client.get_openai_response(messages)
+                    # Cache the response
+                    cache[cache_key] = response
+                    save_cache(cache, cache_file)
 
-                # Add the response (either "R0: Refuse" or "Disagree: explanation")
-                strategy_code_and_term.append(response)
+                # Parse the response into its structured format
+                agreement, strategy, explanation = parse_openai_response(response)
 
-                # Cache the response
-                cache[cache_key] = response
-
-                # Save cache after every row
-                save_cache(cache, cache_file)
-
-            # Join the multiple responses into a single string for each company
-            openai_responses.append(", ".join(strategy_code_and_term))
+                # Append the parsed values to respective lists
+                openai_agreements.append(agreement)
+                openai_strategies.append(strategy)
+                openai_explanations.append(explanation)
 
         except Exception as e:
-            openai_responses.append(handle_row_error(row, str(e)))
+            openai_agreements.append("Error")
+            openai_strategies.append("Error")
+            openai_explanations.append(handle_row_error(row, str(e)))
 
-    # Add the responses as a new column
-    df['openai_answer'] = openai_responses
+    # Add the responses as new columns
+    df['openai_agreement'] = openai_agreements
+    df['openai_strategy'] = openai_strategies
+    df['openai_explanation'] = openai_explanations
 
     # Save the updated DataFrame to the output CSV
     logger.info(f"Saving new CSV with OpenAI responses to {output_csv}")
     df.to_csv(output_csv, index=False)
 
-    # Call the function to generate the map after saving the CSV
-    # logger.log("Generating map based on categorized data")
-    # generate_germany_map(output_csv, "reporting/germany_re_strategy_map_ai_response.png")
-
     # Explicitly delete the DataFrame and clear memory
     del df
     logger.log("Validation job complete.")
+
+def parse_openai_response(response):
+    """
+    Parse the structured response from OpenAI and return the agreement, strategy, and explanation.
+
+    Args:
+        response (str): The structured response from OpenAI.
+
+    Returns:
+        tuple: A tuple containing agreement (str), strategy (str), and explanation (str).
+    """
+    try:
+        # Split the response into lines
+        lines = response.split("\n")
+
+        # Extract the agreement (Assume format: "Agreement: Agree" or "Agreement: Disagree")
+        agreement = lines[0].split(": ")[1].strip()
+
+        # Extract the strategy (Assume format: "Strategy: R#: StrategyName")
+        strategy = lines[1].split(": ")[1].strip()
+
+        # Extract the explanation, if present (only if disagreement exists)
+        if agreement == "Disagree" and len(lines) > 2:
+            explanation = lines[2].split(": ")[1].strip()
+        else:
+            explanation = ""
+
+        return agreement, strategy, explanation
+
+    except Exception as e:
+        logger.error(f"Error parsing OpenAI response: {response}. Error: {str(e)}")
+        return "Error", "Error", "Error"
 
 

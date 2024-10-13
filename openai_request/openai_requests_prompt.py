@@ -22,7 +22,7 @@ def construct_prompt(company_name, city, country, strategy_code, short_descripti
     messages = [
         {
             "role": "system",
-            "content": "You are a helpful assistant that provides concise answers."
+            "content": "You are a helpful assistant that provides structured answers for validation."
         },
         {
             "role": "user",
@@ -30,8 +30,11 @@ def construct_prompt(company_name, city, country, strategy_code, short_descripti
                 f"Analyze if the company '{company_name}' located in {city}, {country}, "
                 f"with the description '{short_description}', can apply the circular economy strategy "
                 f"'{strategy['name']}' defined as '{strategy['definition']}'. "
-                f"If you agree, provide the output in the format: R{strategy_code}: \{strategy['name']}\. "
-                f"If you disagree, respond with 'Disagree' and give a short explanation."
+                f"Please answer in the following structured format:\n\n"
+                f"1. Agreement: [Agree/Disagree]\n"
+                f"2. Strategy: [{strategy_code}: {strategy['name']} or None if not applicable]\n"
+                f"3. Explanation (only if disagreeing): [Brief explanation within 20 words]\n\n"
+                f"Note: Provide 'None' for the strategy if you disagree and cannot find a suitable strategy."
             )
         }
     ]

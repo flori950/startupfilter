@@ -32,7 +32,7 @@ class Config:
     DO_OPENAI = False
     DO_DOWNLOAD = False
     DO_ANALYSIS = False
-
+    DO_MAPPING = False
 
     # client config
     LINKEDIN_NEEDED = False
@@ -64,6 +64,7 @@ class Config:
         parser = argparse.ArgumentParser(description='Program for downloading data from Crunchbase.')
         parser.add_argument('--download_flag', action='store_true', help='Flag to enable crunchbase data processing.')
         parser.add_argument('--analysis_flag', action='store_true', help='Flag to enable analysis from csv')
+        parser.add_argument('--mappimg_flag', action='store_true', help='Flag to enable map analyzed companies from csv')
         parser.add_argument('--upload_flag', action='store_true', help='Flag to enable upload data to bigquery processing.')
         parser.add_argument('--linkedin_flag', action='store_true', help='Flag to enable linkedin data processing.')
         parser.add_argument('--validation_flag', action='store_true', help='Flag to enable validation of categorisation with AI.')
@@ -100,6 +101,9 @@ class Config:
         """
         if args.analysis_flag:
             Config.DO_ANALYSIS = args.analysis_flag
+                
+        if args.analysis_flag:
+            Config.DO_MAPPING = args.mapping_flag
 
         if args.download_flag:
             Config.DO_DOWNLOAD = args.download_flag
@@ -168,6 +172,7 @@ class Config:
         Config.DO_DOWNLOAD = args.download_flag
         Config.DO_LINKEDIN = args.linkedin_flag
         Config.DO_ANALYSIS = args.analysis_flag
+        Config.DO_MAPPING = args.mapping_flag
         Config.DO_OPENAI = args.validation_flag
 
     def set_preprocessing_settings(self):

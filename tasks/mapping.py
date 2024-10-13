@@ -111,7 +111,8 @@ def generate_germany_map(categorized_csv, output_image, cache_file='city_coords_
     # Filter for Germany
     germany = germany[germany['SOVEREIGNT'] == 'Germany']
 
-    logger.info("Plotting the map")
+    # Plotting the combined map for all strategies
+    logger.info("Plotting the combined map")
     fig, ax = plt.subplots(figsize=(12, 12))
     germany.plot(ax=ax, color='lightgrey')
 
@@ -128,13 +129,30 @@ def generate_germany_map(categorized_csv, output_image, cache_file='city_coords_
     # Create a legend with multiple columns and smaller marker size
     legend_elements = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors(i), markersize=8, label=strategy) for i, strategy in enumerate(strategies)]
     
-    # Set number of columns in the legend
     plt.legend(handles=legend_elements, title="RE Strategies", loc='upper left', bbox_to_anchor=(1, 1), ncol=2, fontsize='small', title_fontsize='medium')
 
     plt.title('Distribution of Companies in Germany by Circular Economy RE Strategies')
 
-    logger.info(f"Saving map to {output_image}")
+    logger.info(f"Saving combined map to {output_image}")
     plt.savefig(output_image, dpi=300, bbox_inches='tight')  # Ensure everything fits within the output image
-
     plt.show()
-    logger.info("Map generation completed")
+    logger.info("Combined map generation completed")
+
+    # Generate individual maps for each RE strategy
+    for i, strategy in enumerate(strategies):
+        logger.info(f"Generating map for {strategy}")
+        fig, ax = plt.subplots(figsize=(12, 12))
+        germany.plot(ax=ax, color='lightgrey')
+
+        for city, row in city_counts.iterrows():
+            if row[strategy] > 0:
+                if city in city_coords:
+                    lat, lon = city_coords[city]
+                    ax.scatter(lon, lat, s=row[strategy] * 50, color=colors(i), alpha=0.6, edgecolor='black')
+
+        plt.title(f'Distribution of Companies in Germany by {strategy}')
+        individual_output_image = f"reporting/germany_{strategy}_strategy_map.png"
+        logger.info(f"Saving {strategy} map to {individual_output_image}")
+        plt.savefig(individual_output_image, dpi=300, bbox_inches='tight')
+        plt.show()
+        logger.info(f"{strategy} map generation completed")

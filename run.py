@@ -14,6 +14,7 @@ from tasks import (
 from config import Config
 
 from logger import Logger as logger
+from tasks.mapping import generate_germany_map
 
 
 if __name__ == "__main__":
@@ -94,6 +95,14 @@ if __name__ == "__main__":
     if CONFIG.DO_ANALYSIS:
         logger.info("Start analysis Job")
         analysis.run_job()
+        logger.info("Finished analysis Job")
+
+    # without upload to BQ
+    if CONFIG.DO_MAPPING:
+        logger.info("Start analysis Job")
+        logger.log("Generating map based on categorized data")
+        output_csv = "reporting/categorized_crunchbase_with_address.csv"
+        generate_germany_map(output_csv, "reporting/germany_re_strategy_map.png")
         logger.info("Finished analysis Job")
 
     # without upload to BQ

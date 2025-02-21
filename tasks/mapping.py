@@ -157,21 +157,14 @@ def generate_germany_map(categorized_csv, output_image, cache_file='city_coords_
         plt.show()
         logger.info(f"{strategy} map generation completed")
 
-def generate_germany_map_with_validation(categorized_csv, output_image, cache_file='city_coords_cache.json'):
+def generate_germany_map_with_validation_disagree(categorized_csv, output_image, cache_file='city_coords_cache.json'):
     logger.info(f"Starting to generate map from {categorized_csv}")
     
-    # Check if the CSV with validation responses exists
-    validated_csv = categorized_csv
-    if not os.path.exists(validated_csv):
-        logger.error(f"Validation CSV file '{validated_csv}' not found!")
-        return
-    
-    # Load the validated CSV
-    df = pd.read_csv(validated_csv)
+    df = pd.read_csv(categorized_csv)
     logger.info(f"Loaded CSV file with {len(df)} rows")
 
-    # Filter for rows where OpenAI disagrees with the original categorization
-    df_germany_disagreed = df[(df['Country'] == 'Germany') & (df['openai_agreement'] == 'Disagree')]
+    # Filter for rows where OpenAI disagrees
+    df_germany_disagreed = df[(df['Country'] == 'Germany') & (df['openai_agreement'].str.contains('Disagree'))]
     logger.info(f"Filtered to {len(df_germany_disagreed)} rows where OpenAI disagreed for Germany")
 
     if df_germany_disagreed.empty:
@@ -181,7 +174,7 @@ def generate_germany_map_with_validation(categorized_csv, output_image, cache_fi
     city_coords_cache = load_cache(cache_file)
     city_coords = defaultdict(list)
 
-    # Fetch coordinates for unique cities where OpenAI disagreed
+    # Fetch coordinates for unique cities with disagreements
     logger.info(f"Fetching coordinates for {len(df_germany_disagreed['City'].unique())} unique cities with disagreements...")
     
     for city in tqdm(df_germany_disagreed['City'].unique(), desc="Processing cities", ncols=100):
@@ -202,12 +195,10 @@ def generate_germany_map_with_validation(categorized_csv, output_image, cache_fi
     # Group by City and RE_Strategy_Names
     city_counts = df_germany_disagreed.groupby(['City', 'RE_Strategy_Names']).size().unstack(fill_value=0)
 
-    # Load the Germany shapefile from the provided path
+    # Load the Germany shapefile
     logger.info("Loading Germany shapefile")
     germany_shapefile_path = "helpers/natural_earth/ne_110m_admin_0_countries.shp"
     germany = gpd.read_file(germany_shapefile_path)
-    
-    # Filter for Germany
     germany = germany[germany['SOVEREIGNT'] == 'Germany']
 
     # Plotting the combined map for all strategies
@@ -225,11 +216,9 @@ def generate_germany_map_with_validation(categorized_csv, output_image, cache_fi
                     lat, lon = city_coords[city]
                     ax.scatter(lon, lat, s=row[strategy] * 50, color=colors(i), alpha=0.6, edgecolor='black', label=strategy)
 
-    # Create a legend with multiple columns and smaller marker size
+    # Create a legend
     legend_elements = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors(i), markersize=8, label=strategy) for i, strategy in enumerate(strategies)]
-    
     plt.legend(handles=legend_elements, title="RE Strategies (Disagreed)", loc='upper left', bbox_to_anchor=(1, 1), ncol=2, fontsize='small', title_fontsize='medium')
-
     plt.title('Distribution of Disagreed Companies in Germany by Circular Economy RE Strategies')
 
     validated_output_image = output_image.replace(".png", "_with_validation.png")
@@ -251,9 +240,97 @@ def generate_germany_map_with_validation(categorized_csv, output_image, cache_fi
                     ax.scatter(lon, lat, s=row[strategy] * 50, color=colors(i), alpha=0.6, edgecolor='black')
 
         plt.title(f'Distribution of Disagreed Companies in Germany by {strategy}')
-        individual_output_image = f"img/validated/germany_{strategy}_strategy_map_with_validation.png"
+        individual_output_image = f"img/validated/disagree/germany_{strategy}_strategy_map_with_validation_disagree.png"
         logger.info(f"Saving {strategy} map to {individual_output_image}")
         plt.savefig(individual_output_image, dpi=300, bbox_inches='tight')
         plt.show()
         logger.info(f"{strategy} map generation completed")
 
+def generate_germany_map_with_validation_agree(categorized_csv, output_image, cache_file='city_coords_cache.json'):
+    logger.info(f"Starting to generate map from {categorized_csv}")
+    
+    df = pd.read_csv(categorized_csv)
+    logger.info(f"Loaded CSV file with {len(df)} rows")
+
+    # Filter for rows where OpenAI agrees
+    df_germany_agreed = df[(df['Country'] == 'Germany') & (df['openai_agreement'].str.contains('Agree'))]
+    logger.info(f"Filtered to {len(df_germany_agreed)} rows where OpenAI agreed for Germany")
+
+    if df_germany_agreed.empty:
+        logger.warning("No agreements found in the data. Exiting map generation.")
+        return
+
+    city_coords_cache = load_cache(cache_file)
+    city_coords = defaultdict(list)
+
+    # Fetch coordinates for unique cities with agreements
+    logger.info(f"Fetching coordinates for {len(df_germany_agreed['City'].unique())} unique cities with agreements...")
+    
+    for city in tqdm(df_germany_agreed['City'].unique(), desc="Processing cities", ncols=100):
+        if city in city_coords_cache:
+            # Use cached coordinates
+            city_coords[city] = city_coords_cache[city]
+        else:
+            lat, lon = get_osm_coordinates(city, country="Germany", cache=city_coords_cache)
+            if lat and lon:
+                city_coords[city] = (lat, lon)
+                city_coords_cache[city] = (lat, lon)
+                time.sleep(1)  # Rate-limiting
+            else:
+                logger.warning(f"Skipping city {city} due to missing coordinates.")
+
+    save_cache(city_coords_cache, cache_file)
+
+    # Group by City and RE_Strategy_Names
+    city_counts = df_germany_agreed.groupby(['City', 'RE_Strategy_Names']).size().unstack(fill_value=0)
+
+    # Load the Germany shapefile
+    logger.info("Loading Germany shapefile")
+    germany_shapefile_path = "helpers/natural_earth/ne_110m_admin_0_countries.shp"
+    germany = gpd.read_file(germany_shapefile_path)
+    germany = germany[germany['SOVEREIGNT'] == 'Germany']
+
+    # Plotting the combined map for all strategies
+    logger.info("Plotting the combined map for agreements")
+    fig, ax = plt.subplots(figsize=(12, 12))
+    germany.plot(ax=ax, color='lightgrey')
+
+    strategies = city_counts.columns
+    colors = cm.get_cmap('coolwarm', len(strategies))
+
+    for i, strategy in enumerate(strategies):
+        for city, row in city_counts.iterrows():
+            if row[strategy] > 0:
+                if city in city_coords:
+                    lat, lon = city_coords[city]
+                    ax.scatter(lon, lat, s=row[strategy] * 50, color=colors(i), alpha=0.6, edgecolor='black', label=strategy)
+
+    # Create a legend
+    legend_elements = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors(i), markersize=8, label=strategy) for i, strategy in enumerate(strategies)]
+    plt.legend(handles=legend_elements, title="RE Strategies (Agreed)", loc='upper left', bbox_to_anchor=(1, 1), ncol=2, fontsize='small', title_fontsize='medium')
+    plt.title('Distribution of Agreed Companies in Germany by Circular Economy RE Strategies')
+
+    validated_output_image = output_image.replace(".png", "_with_validation_agree.png")
+    logger.info(f"Saving validation map to {validated_output_image}")
+    plt.savefig(validated_output_image, dpi=300, bbox_inches='tight')
+    plt.show()
+    logger.info("Validation map generation completed")
+
+    # Generate individual maps for each RE strategy with agreements
+    for i, strategy in enumerate(strategies):
+        logger.info(f"Generating map for {strategy} (Agreements)")
+        fig, ax = plt.subplots(figsize=(12, 12))
+        germany.plot(ax=ax, color='lightgrey')
+
+        for city, row in city_counts.iterrows():
+            if row[strategy] > 0:
+                if city in city_coords:
+                    lat, lon = city_coords[city]
+                    ax.scatter(lon, lat, s=row[strategy] * 50, color=colors(i), alpha=0.6, edgecolor='black')
+
+        plt.title(f'Distribution of Agreed Companies in Germany by {strategy}')
+        individual_output_image = f"img/validated/agree/germany_{strategy}_strategy_map_with_validation.png"
+        logger.info(f"Saving {strategy} map to {individual_output_image}")
+        plt.savefig(individual_output_image, dpi=300, bbox_inches='tight')
+        plt.show()
+        logger.info(f"{strategy} map generation completed")

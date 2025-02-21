@@ -106,7 +106,8 @@ if __name__ == "__main__":
         logger.log("Generating map based on validated categorized data")
         categorized_csv = 'reporting/categorized_crunchbase_with_openai_responses.csv'
         # Call the function to generate maps for the validation results
-        mapping.generate_germany_map_with_validation(categorized_csv, "img/validated/germany_re_strategy_map_validated.png")
+        mapping.generate_germany_map_with_validation_disagree(categorized_csv, "img/validated/disagree/germany_re_strategy_map_validated_disagree.png")
+        mapping.generate_germany_map_with_validation_agree(categorized_csv, "img/validated/agree/germany_re_strategy_map_validated_agree.png")
         logger.info("Finished mapping Job")
 
     # without upload to BQ

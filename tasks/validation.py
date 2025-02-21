@@ -109,13 +109,18 @@ def process_csv_and_save(input_csv, output_csv, strategy_dict, openai_client, ca
             strategy_codes = row['RE_Strategy_Codes'].split(", ")
             short_description = row['Short_Description']
 
+            # Initialize lists to store responses for this row
+            row_agreements = []
+            row_strategies = []
+            row_explanations = []
+
             # Iterate over each strategy code
             for strategy_code in strategy_codes:
                 # Validate strategy code
                 if not validate_strategy_code(strategy_code, strategy_dict):
-                    openai_agreements.append("Invalid")
-                    openai_strategies.append(f"Invalid strategy code: {strategy_code}")
-                    openai_explanations.append("")
+                    row_agreements.append("Invalid")
+                    row_strategies.append(f"Invalid strategy code: {strategy_code}")
+                    row_explanations.append("")
                     continue
 
                 # Generate a unique cache key based on company and strategy
@@ -140,15 +145,24 @@ def process_csv_and_save(input_csv, output_csv, strategy_dict, openai_client, ca
                 # Parse the response into its structured format
                 agreement, strategy, explanation = parse_openai_response(response)
 
-                # Append the parsed values to respective lists
-                openai_agreements.append(agreement)
-                openai_strategies.append(strategy)
-                openai_explanations.append(explanation)
+                # Append the parsed values to the row-specific lists
+                row_agreements.append(agreement)
+                row_strategies.append(strategy)
+                row_explanations.append(explanation)
+
+            # Combine responses for this row into a single string
+            openai_agreements.append(", ".join(row_agreements))
+            openai_strategies.append(", ".join(row_strategies))
+            openai_explanations.append(", ".join(row_explanations))
 
         except Exception as e:
             openai_agreements.append("Error")
             openai_strategies.append("Error")
             openai_explanations.append(handle_row_error(row, str(e)))
+
+    # Validate that the number of responses matches the number of rows
+    if len(openai_agreements) != len(df):
+        raise ValueError("Length of OpenAI responses does not match the number of rows in the DataFrame.")
 
     # Add the responses as new columns
     df['openai_agreement'] = openai_agreements
